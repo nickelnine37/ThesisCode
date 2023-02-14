@@ -3,21 +3,12 @@ from scipy.spatial import Voronoi
 from shapely.geometry import Polygon, MultiPolygon
 
 
-def bounded_voronoi(points: np.ndarray, boundary: np.ndarray):
+
+def modified_voronoi(vor: Voronoi) -> tuple[np.ndarray, np.ndarray]:
     """
-    Given a bounding path, calculate the Voronoi regions for each point specified
-
-    Params:
-        points          (N, 2) x-y coordinates of N points
-        boundary        (M, 2) a path specifying the diagram boundary. 
-
-    Returns
-        
-
+    Take in a Voronoi data structure, and return the voronoi vertices
+    and regions that are modified to include the points at infinity.
     """
-
-    vor = Voronoi(points)
-    boundary_poly = Polygon(boundary)
 
     if vor.points.shape[1] != 2:
         raise ValueError("Requires 2D input")
@@ -81,22 +72,41 @@ def bounded_voronoi(points: np.ndarray, boundary: np.ndarray):
         # finish
         new_regions.append(new_region.tolist())
 
-    new_vertices = np.asarray(new_vertices)
+    return new_vertices, np.asarray(new_vertices)
 
-    new_new_regions = []
 
-    for region in new_regions:
+
+def bounded_voronoi(points: np.ndarray, boundary: np.ndarray) -> list[list[np.ndarray]]:
+    """
+    Given a bounding path, calculate the Voronoi regions for each point specified
+
+    Params:
+        points          (N, 2) x-y coordinates of N points
+        boundary        (M, 2) a path specifying the diagram boundary. 
+
+    Returns
+        A list of lists of regions, one set of regions for each point passed
+    """
+
+    vor = Voronoi(points)
+    boundary_poly = Polygon(boundary)
+
+    vertices, modified_regions = modified_voronoi(vor)
+
+    new_regions = []
+
+    for region in modified_regions:
         
-        poly = Polygon(new_vertices[region]).intersection(boundary_poly)
+        poly = Polygon(vertices[region]).intersection(boundary_poly)
 
         if isinstance(poly, MultiPolygon):
-            new_new_regions.append([np.asarray(sub_poly.exterior.coords) for sub_poly in poly.geoms])
+            new_regions.append([np.asarray(sub_poly.exterior.coords) for sub_poly in poly.geoms])
 
         else:
-            new_new_regions.append([np.asarray(poly.exterior.coords)])
+            new_regions.append([np.asarray(poly.exterior.coords)])
 
 
-    return new_new_regions
+    return new_regions
 
 
 
