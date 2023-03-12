@@ -72,7 +72,7 @@ def modified_voronoi(vor: Voronoi) -> tuple[np.ndarray, np.ndarray]:
         # finish
         new_regions.append(new_region.tolist())
 
-    return new_vertices, np.asarray(new_vertices)
+    return np.asarray(new_vertices), np.asarray(new_regions)
 
 
 
@@ -96,7 +96,7 @@ def bounded_voronoi(points: np.ndarray, boundary: np.ndarray) -> list[list[np.nd
     new_regions = []
 
     for region in modified_regions:
-        
+
         poly = Polygon(vertices[region]).intersection(boundary_poly)
 
         if isinstance(poly, MultiPolygon):

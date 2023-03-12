@@ -34,7 +34,7 @@ def handle_types(f):
     return _to_colors
 
 @handle_types
-def to_colors(data: np.ndarray, cmap='viridis', vmin=None, vmax=None):
+def to_colors(data: np.ndarray, cmap='viridis', vmin=None, vmax=None, alpha=None):
     """
     Convert a numpy array to an array of colors with a given colormap
     """
@@ -48,11 +48,15 @@ def to_colors(data: np.ndarray, cmap='viridis', vmin=None, vmax=None):
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     m = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
     
-    def to_string(r, g, b):
+    def to_string(r, g, b, a):
         """
         Convert an (r, g, b) triplet in the range 0-1 to a hex color string
         """
-        return f'#{int(r * 255):02X}{int(g * 255):02X}{int(b * 255):02X}'
-
-    return np.array([to_string(r, g, b) for (r, g, b, _) in m.to_rgba(data.ravel())]).reshape(data.shape)
+        if a is None:
+            return '#' + ''.join([f'{int(c * 255):02X}' for c in [r, g, b]])
+        
+        else:
+            return '#' + ''.join([f'{int(c * 255):02X}' for c in [r, g, b, a]])
+        
+    return np.array([to_string(r, g, b, alpha) for (r, g, b, _) in m.to_rgba(data.ravel())]).reshape(data.shape)
 
