@@ -19,6 +19,48 @@ def mat(x: np.ndarray, shape: tuple) -> np.ndarray:
     return x.reshape((shape[1], shape[0])).T
 
 
+def conjugate_grad(A: LinearOperator, b: np.ndarray, x: np.ndarray=None):
+    """
+    Description
+    -----------
+    Solve a linear equation Ax = b with conjugate gradient method.
+    Parameters
+    ----------
+    A: 2d numpy.array of positive semi-definite (symmetric) matrix
+    b: 1d numpy.array
+    x: 1d numpy.array of initial point
+    Returns
+    -------
+    1d numpy.array x such that Ax = b
+    """
+    
+    n = len(b)
+    
+    if not x:
+        x = np.zeros(n)
+
+    r = A.matvec(x) - b
+    p = - r
+    r_k_norm = np.dot(r, r)
+
+    for i in range(2 * n):
+
+        Ap = A.matvec(p)
+        alpha = r_k_norm / np.dot(p, Ap)
+        x += alpha * p
+        r += alpha * Ap
+        r_kplus1_norm = np.dot(r, r)
+        beta = r_kplus1_norm / r_k_norm
+        r_k_norm = r_kplus1_norm
+
+        if r_kplus1_norm < 1e-5:
+            break
+
+        p = beta * p - r
+
+    return x, i
+
+
 class GSR2D:
 
     def __init__(self, 
@@ -40,8 +82,8 @@ class GSR2D:
         """
 
         # get signal shape
-        T = LT.shape[0]
-        N = LN.shape[0]
+        self.T = LT.shape[0]
+        self.N = LN.shape[0]
 
         # decompose Laplacians
         self.lamT, self.UT = np.linalg.eigh(LT)
@@ -121,7 +163,6 @@ class GSR2D:
         """
 
         N, T = Y.shape
-
         assert N == self.N and T == self.T, f'Y should have shape {(self.N, self.T)} but it has shape {Y.shape}'
 
         G2 = self.filter(self.lamN[:, None], self.lamT[None, :], self.beta[0], self.beta[1]) ** 2
@@ -163,6 +204,7 @@ class GSR2D:
         """
 
         N, T = Y.shape
+        assert N == self.N and T == self.T, f'Y should have shape {(self.N, self.T)} but it has shape {Y.shape}'
 
         G = self.filter(self.lamN[:, None], self.lamT[None, :], self.beta[0], self.beta[1])
 
@@ -179,6 +221,14 @@ class GSR2D:
         
         linop = LinearOperator((N * T, N * T), matvec=matvec)
         
-        z, exit_code = cg(linop, vec(G * (self.UN.T @ Y @ self.UT)), callback=iter_count, maxiter=max_iters)
+        z, exit_code = cg(linop, vec(G * (self.UN.T @ Y @ self.UT)), x0=np.random.normal(size=N * T), callback=iter_count, maxiter=max_iters)
 
         return self.UN @ (G * mat(z, (N, T))) @ self.UT.T, nits
+
+        # z, nits = conjugate_grad(linop, vec(G * (self.UN.T @ Y @ self.UT)))
+
+        # print(z, nits)
+
+        # raise ValueError
+
+        # return self.UN @ (G * mat(z, (N, T))) @ self.UT.T, nits
