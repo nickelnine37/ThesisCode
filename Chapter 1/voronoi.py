@@ -72,7 +72,7 @@ def modified_voronoi(vor: Voronoi) -> tuple[np.ndarray, np.ndarray]:
         # finish
         new_regions.append(new_region.tolist())
 
-    return np.asarray(new_vertices), np.asarray(new_regions)
+    return np.asarray(new_vertices), new_regions
 
 
 

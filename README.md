@@ -11,7 +11,11 @@ scipy
 tqdm 
 scikit-learn 
 jupyter
-
+shapely
+networkx
+pyproj
+pybids
+fredapi
 ```
 
 

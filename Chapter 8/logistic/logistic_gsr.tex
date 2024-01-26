@@ -1,0 +1,30 @@
+\documentclass[crop,tikz]{standalone} 
+\usepackage{tikz, amsmath, amssymb, graphicx} 
+
+\DeclareMathAlphabet\mathbfcal{OMS}{cmsy}{b}{n}
+
+\newcommand{\Mt}{\mathbfcal{M}}
+\newcommand{\Yt}{\mathbfcal{Y}}
+\newcommand{\Ft}{\mathbfcal{F}}
+
+\usetikzlibrary{positioning, shapes.geometric} 
+
+\begin{document} 
+
+\begin{tikzpicture}
+
+
+\node[inner sep=0pt] (sim:0.05) at (0,0) {
+\includegraphics[width=1.2\textwidth]{logistic_gsr_plot.pdf}
+};
+
+
+\draw (-3.8, 6.0) node {$\Ft$};
+\draw (0.2, 6.0) node {$\Mt$};
+\draw (4.2, 6.0) node {Most likely classification};
+
+
+
+
+\end{tikzpicture}
+\end{document} 
